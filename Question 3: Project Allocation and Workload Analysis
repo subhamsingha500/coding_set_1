@@ -1,0 +1,71 @@
+//SCALA_SPARK
+
+import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.functions._
+
+
+val spark = SparkSession.builder.appName("ProjectWork").getOrCreate()
+
+import spark.implicits._
+
+val workload = List(
+("karthik", "ProjectA", 120),
+("karthik", "ProjectB", 100),
+("neha", "ProjectC", 80),
+("neha", "ProjectD", 30),
+("priya", "ProjectE", 110),
+("mohan", "ProjectF", 40),
+("ajay", "ProjectG", 70),
+("vijay", "ProjectH", 150),
+("veer", "ProjectI", 190),
+("aatish", "ProjectJ", 60),
+("animesh", "ProjectK", 95),
+("nishad", "ProjectL", 210),
+("varun", "ProjectM", 50),
+("aadil", "ProjectN", 90)
+).toDF("name", "project", "hours")
+
+val workdf = workload.groupBy("name").agg((sum("hours").alias("total_hours")
+
+val workdf1 = workdf.withColumn("name", initcap(col("name")))
+        .withColumn("workload_level", when(col("total_hours")>200, "Overloaded").when(col("total_hours").between(100,200), "Balanced").otherwise("Underutilized")
+
+val aggdf = workdf1.groupBy("workload_level").count()
+
+aggdf.show()
+
+//PySpark
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, when, initcap, sum 
+
+spark = SparkSession.builder.appName("ProjectWork").getOrCreate()
+
+workload = [
+("karthik", "ProjectA", 120),
+("karthik", "ProjectB", 100),
+("neha", "ProjectC", 80),
+("neha", "ProjectD", 30),
+("priya", "ProjectE", 110),
+("mohan", "ProjectF", 40),
+("ajay", "ProjectG", 70),
+("vijay", "ProjectH", 150),
+("veer", "ProjectI", 190),
+("aatish", "ProjectJ", 60),
+("animesh", "ProjectK", 95),
+("nishad", "ProjectL", 210),
+("varun", "ProjectM", 50),
+("aadil", "ProjectN", 90)
+]
+workload_df = spark.createDataFrame(workload, ["name", "project", "hours"])
+
+workdf = workload_df.groupBy("name").agg((sum("hours").alias("total_hours")
+
+workdf1 = workload_df.withColumn("name", initcap(col("name")))
+        .withColumn("workload_level", when(col("total_hours")>200, "Overloaded").when(col("total_hours")>=100 & col("total_hours")<=200, "Balanced").otherwise("Underutilized")
+
+
+aggdf = workdf1.groupBy("workload_level").count()
+
+aggdf.show()
+
