@@ -1,0 +1,69 @@
+//Scala_Spark
+
+import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.functions._
+
+val spark = SparkSession.builder
+  .appName("Product_Inventory")
+  .getOrCreate()
+
+import spark.implicits._
+
+val inventory = List(
+("ProductA", 120),
+("ProductB", 95),
+("ProductC", 45),
+("ProductD", 200),
+("ProductE", 75),
+("ProductF", 30),
+("ProductG", 85),
+("ProductH", 100),
+("ProductI", 60),
+("ProductJ", 20)
+).toDF("product_name", "stock_quantity")
+
+
+val workdf = inventory
+  .withColumn("product_name",initcap(col("product_name"))) 
+  .withColumn("Inventory_Stock",
+    when(col("stock_quantity")>=100,"Overstocked")
+    .when(col("stock_quantity").between(50,99),"Normal")
+    .otherwise("Low Stock"))
+
+
+workdf.show()
+
+
+//PySpark
+
+%python
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, when, initcap
+
+spark = SparkSession.builder.appName("Product_Inventory").getOrCreate()
+
+
+inventory = [
+("ProductA", 120),
+("ProductB", 95),
+("ProductC", 45),
+("ProductD", 200),
+("ProductE", 75),
+("ProductF", 30),
+("ProductG", 85),
+("ProductH", 100),
+("ProductI", 60),
+("ProductJ", 20)
+]
+inventory_df = spark.createDataFrame(inventory, ["product_name", "stock_quantity"])
+
+
+workdf = inventory_df \
+  .withColumn("product_name",initcap(col("product_name"))) \
+  .withColumn("Inventory_Stock",
+    when(col("stock_quantity")>=100,"Overstocked")
+    .when(col("stock_quantity").between(50,99),"Normal")
+    .otherwise("Low Stock"))
+
+
+workdf.show()
