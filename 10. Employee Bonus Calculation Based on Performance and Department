@@ -1,0 +1,71 @@
+//Scala_Spark
+
+import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.functions._
+
+val spark = SparkSession.builder
+  .appName("Employee_Bonus")
+  .getOrCreate()
+
+import spark.implicits._
+
+val employees = List(
+  ("karthik", "Sales", 85),
+  ("neha", "Marketing", 78),
+  ("priya", "IT", 90),
+  ("mohan", "Finance", 65),
+  ("ajay", "Sales", 55),
+  ("vijay", "Marketing", 82),
+  ("veer", "HR", 72),
+  ("aatish", "Sales", 88),
+  ("animesh", "Finance", 95),
+  ("nishad", "IT", 60)
+).toDF("name", "department", "performance_score")
+
+val workdf = employees
+  .withColumn("bonus_percentage",
+    when(col("department").isin("Sales", "Marketing") && col("performance_score") > 80, 0.20)
+    .when(!col("department").isin("Sales", "Marketing") && col("performance_score") > 70, 0.15)
+    .otherwise(0.0)
+  )
+  .withColumn("bonus_amount", col("bonus_percentage") * 100) 
+
+val total_bonus_df = workdf.groupBy("department").agg(sum("bonus_amount").alias("total_bonus"))
+
+total_bonus_df.show()
+
+
+//PySpark
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, when, initcap, sum
+
+spark = SparkSession.builder.appName("Employee_Bonus").getOrCreate()
+
+
+
+employees = [
+("karthik", "Sales", 85),
+("neha", "Marketing", 78),
+("priya", "IT", 90),
+("mohan", "Finance", 65),
+("ajay", "Sales", 55),
+("vijay", "Marketing", 82),
+("veer", "HR", 72),
+("aatish", "Sales", 88),
+("animesh", "Finance", 95),
+("nishad", "IT", 60)
+]
+employees_df = spark.createDataFrame(employees, ["name", "department", "performance_score"])
+
+workdf = employees_df \
+    .withColumn("bonus_percentage", 
+        when((col("department").isin("Sales", "Marketing")) & (col("performance_score") > 80), 0.20)
+        .when((~col("department").isin("Sales", "Marketing")) & (col("performance_score") > 70), 0.15)
+        .otherwise(0)
+    ) \
+    .withColumn("bonus_amount", col("bonus_percentage") * 100) 
+
+total_bonus_df = workdf.groupBy("department").agg(sum("bonus_amount").alias("total_bonus"))
+
+total_bonus_df.show()
