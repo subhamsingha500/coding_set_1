@@ -1,0 +1,60 @@
+//Scala_Spark
+
+import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.functions._
+
+val spark = SparkSession.builder
+  .appName("Custome_age")
+  .getOrCreate()
+
+import spark.implicits._
+
+val customers = List(
+("karthik", 22),
+("neha", 28),
+("priya", 40),
+("mohan", 55),
+("ajay", 32),
+("vijay", 18),
+("veer", 47),
+("aatish", 38),
+("animesh", 60),
+("nishad", 25)
+).toDF("name", "age")
+
+val agedf = customers
+  .withColumn("name", initcap(col("name")))
+  .withColumn("age_category",
+    when(col("age")<25,"Youth")
+    .when(col("age").between(25,45),"Adult")
+    .otherwise("Senior")
+    )
+
+agedf.show()
+
+
+//PySpark
+
+%python
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, when, initcap
+
+spark = SparkSession.builder.appName("Custome_age").getOrCreate()
+
+customers = [
+("karthik", 22),
+("neha", 28),
+("priya", 40),
+("mohan", 55),
+("ajay", 32),
+("vijay", 18),
+("veer", 47),
+("aatish", 38),
+("animesh", 60),
+("nishad", 25)
+]
+customers_df = spark.createDataFrame(customers, ["name", "age"])
+
+workdf = customers_df.withColumn("name",initcap(col("name"))).withColumn("age_category",when(col("age")<25,"Youth").when(col("age").between(25,45),"Adult").otherwise("Senior"))
+
+workdf.show()
