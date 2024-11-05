@@ -60,7 +60,7 @@ sales = [
 sales_df = spark.createDataFrame(sales, ["name", "total_sales"])
 
 performance_df = sales_df.withColumn(
-    "name", initcap(col("name"))  # Capitalize each agent's name
+    "name", initcap(col("name"))  
 ).withColumn(
     "performance_status", when(col("total_sales") > 50000, "Excellent")
     .when((col("total_sales") >= 25000) & (col("total_sales") <= 50000), "Good").otherwise("Needs Improvement"))
