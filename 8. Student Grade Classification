@@ -1,0 +1,67 @@
+//Scala_Spark
+
+import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.functions._
+
+val spark = SparkSession.builder
+  .appName("Student_grade")
+  .getOrCreate()
+
+import spark.implicits._
+
+val students = List(
+("karthik", 95),
+("neha", 82),
+("priya", 74),
+("mohan", 91),
+("ajay", 67),
+("vijay", 80),
+("veer", 85),
+("aatish", 72),
+("animesh", 90),
+("nishad", 60)
+).toDF("name", "score")
+
+val workdf = students
+  .withColumn("name",initcap(col("name")))
+  .withColumn("Grade",
+    when(col("score")>90,"Excellent")
+    .when(col("score").between(75,89),"Good")
+    .otherwise("Needs Improvement"))
+
+
+workdf.show()
+
+
+//PySpark
+
+%python
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, when, initcap
+
+spark = SparkSession.builder.appName("Student_grade").getOrCreate()
+
+
+students = [
+("karthik", 95),
+("neha", 82),
+("priya", 74),
+("mohan", 91),
+("ajay", 67),
+("vijay", 80),
+("veer", 85),
+("aatish", 72),
+("animesh", 90),
+("nishad", 60)
+]
+students_df = spark.createDataFrame(students, ["name", "score"])
+
+workdf = students_df \
+  .withColumn("name",initcap(col("name"))) \
+  .withColumn("Grade",
+    when(col("score")>90,"Excellent")
+    .when(col("score").between(75,89),"Good")
+    .otherwise("Needs Improvement"))
+
+
+workdf.show()
