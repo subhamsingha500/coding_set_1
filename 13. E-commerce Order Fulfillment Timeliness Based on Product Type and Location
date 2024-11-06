@@ -1,0 +1,72 @@
+//Scala
+
+import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.functions._
+
+val spark = SparkSession.builder
+  .appName("E-commerce_Order")
+  .getOrCreate()
+
+import spark.implicits._
+
+val orders = List(
+("Order1", "Laptop", "Domestic", 2),
+("Order2", "Shoes", "International", 8),
+("Order3", "Smartphone", "Domestic", 3),
+("Order4", "Tablet", "International", 5),
+("Order5", "Watch", "Domestic", 7),
+("Order6", "Headphones", "International", 10),
+("Order7", "Camera", "Domestic", 1),
+("Order8", "Shoes", "International", 9),
+("Order9", "Laptop", "Domestic", 6),
+("Order10", "Tablet", "International", 4)
+).toDF("order_id", "product_type", "origin", "delivery_days")
+
+val workdf = orders
+  .withColumn("Order_Status",
+    when(col("delivery_days")>7 && col("origin").isin("International"), "Delayed")
+    .when(col("delivery_days").between(3,7),"On-Time")
+    .otherwise("fast"))
+
+workdf.show()
+
+val count_prodct_df = workdf.groupBy("product_type","Order_Status").agg(count("Order_Status"))
+
+count_prodct_df.show()
+
+//Pyspark
+
+%python
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, when, count
+
+spark = SparkSession.builder.appName("E-commerce_Order").getOrCreate()
+
+
+
+
+orders = [
+("Order1", "Laptop", "Domestic", 2),
+("Order2", "Shoes", "International", 8),
+("Order3", "Smartphone", "Domestic", 3),
+("Order4", "Tablet", "International", 5),
+("Order5", "Watch", "Domestic", 7),
+("Order6", "Headphones", "International", 10),
+("Order7", "Camera", "Domestic", 1),
+("Order8", "Shoes", "International", 9),
+("Order9", "Laptop", "Domestic", 6),
+("Order10", "Tablet", "International", 4)]
+
+orders_df = spark.createDataFrame(orders, ["order_id", "product_type", "origin", "delivery_days"])
+
+workdf = orders_df \
+  .withColumn("Order_Status",
+    when((col("delivery_days")>7) & (col("origin").isin("International")), "Delayed")
+    .when(col("delivery_days").between(3,7),"On-Time")
+    .otherwise("fast"))
+
+workdf.show()
+
+count_prodct_df = workdf.groupBy("product_type","Order_Status").agg(count("Order_Status"))
+
+count_prodct_df.show()
