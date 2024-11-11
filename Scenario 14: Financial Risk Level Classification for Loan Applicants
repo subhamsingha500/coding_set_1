@@ -1,0 +1,54 @@
+//Scala
+
+import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.functions._
+
+val spark = SparkSession.builder
+  .appName("Credit_Risk")
+  .getOrCreate()
+
+import spark.implicits._
+
+val loanApplicants = List(
+("karthik", 60000, 120000, 590),
+("neha", 90000, 180000, 610),
+("priya", 50000, 75000, 680),
+("mohan", 120000, 240000, 560),
+("ajay", 45000, 60000, 620),
+("vijay", 100000, 100000, 700),
+("veer", 30000, 90000, 580),
+("aatish", 85000, 85000, 710),
+("animesh", 50000, 100000, 650),
+("nishad", 75000, 200000, 540)
+).toDF("name", "income", "loan_amount", "credit_score")
+
+val workdf = loanApplicants.withColumn("Risk_meter",when(col("loan_amount")> col("income")*2 && col("credit_score")<600, "High Risk").when(col("loan_amount").between(col("income"),col("income")*2) && col("credit_score").between(600,700), "Moderate Risk" ).otherwise("Low Risk"))
+
+workdf.show()
+
+val high_risk_df = workdf
+  .filter(col("Risk_meter")==="High Risk")
+  .withColumn("income_range",
+    when(col("income")<50000,"<50k")
+    .when(col("income").between(50000,100000),"50k-100k")
+    .otherwise(">100k"))
+  .groupBy("income_range")
+  .agg(avg("loan_amount").alias("avg_loan_amount"))
+
+high_risk_df.show()
+
+val avg_credit_score_df = workdf
+  .withColumn("income_range",
+      when(col("income")<50000,"<50k")
+      .when(col("income").between(50000,100000),"50k-100k")
+      .otherwise(">100k"))
+  .groupBy("income_range","Risk_Meter")
+  .agg(avg("credit_score").alias("avg_credit_score"))
+  .filter(col("avg_credit_score")<650)
+
+
+avg_credit_score_df.show()
+
+
+//PySpark
+
